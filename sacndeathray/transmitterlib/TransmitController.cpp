@@ -35,12 +35,13 @@ void TransmitController::setInterface(const QNetworkInterface &iface)
         auto hexIt = hex.begin();
         for (; bytesIt != bytes.end() && hexIt != hex.end(); ++bytesIt, ++hexIt) {
             bool ok;
+            const auto byte = static_cast<uint8_t>(hexIt->toUInt(&ok, 16));
             if (!ok) {
                 SPDLOG_ERROR(
                     "Bad MAC Address representation: {}", iface.hardwareAddress().toStdString());
                 return bytes;
             }
-            *bytesIt = static_cast<uint8_t>(hexIt->toUInt(&ok, 16));
+            *bytesIt = byte;
         }
         return bytes;
     }();

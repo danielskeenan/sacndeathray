@@ -9,6 +9,8 @@
 #ifndef SACNDEATHRAY_CONFIG_H
 #define SACNDEATHRAY_CONFIG_H
 
+#include <cstdint>
+
 namespace sacndeathray::config {
     // Project info
     const auto kProjectName = "${PROJECT_NAME}";

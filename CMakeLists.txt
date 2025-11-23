@@ -36,6 +36,7 @@ if (BUILD_APP)
 
     set(QT_COMPONENTS
             Core
+            LinguistTools
             Svg
             WebSockets
             Widgets

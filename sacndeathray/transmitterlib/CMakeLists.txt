@@ -1,4 +1,4 @@
-set(TARGET deathray_transmitter)
+set(TARGET deathray_transmitterlib)
 
 qt_add_library(${TARGET} STATIC
         TransmitController.cpp

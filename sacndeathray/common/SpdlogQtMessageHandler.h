@@ -13,16 +13,12 @@
 
 namespace sacndeathray {
 
-class SpdlogQtMessageHandler
-{
-    /**
-     * Connect QtLogging to spdlog.
-     *
-     * @see qInstallMessageHandler()
-     */
-    void spdlogQtMessageHandler(
-        QtMsgType type, const QMessageLogContext &context, const QString &msg);
-};
+/**
+ * Connect QtLogging to spdlog.
+ *
+ * @see qInstallMessageHandler()
+ */
+void spdlogQtMessageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg);
 
 } // namespace sacndeathray
 

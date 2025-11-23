@@ -27,6 +27,10 @@ public:
     void setNetint(const QNetworkInterface &netint) { netint_ = netint; }
     [[nodiscard]] uint16_t port() const { return port_; }
     void setPort(const uint16_t port) { port_ = port; }
+    void setReceiverAddress(const QHostAddress &receiverAddress)
+    {
+        receiverAddress_ = receiverAddress;
+    }
 
 Q_SIGNALS:
     void receiverConnected(QDateTime timestamp);
@@ -48,6 +52,7 @@ private:
     QNetworkInterface netint_;
     uint16_t port_;
     QWebSocket websocket_;
+    QHostAddress receiverAddress_;
 
 private Q_SLOTS:
     void onConnected();

@@ -29,21 +29,10 @@ TransmitMessenger::TransmitMessenger(QObject *parent) : QObject(parent), port_(c
 
 void TransmitMessenger::start()
 {
-    const auto receiverAddress = [this]() {
-        // Prefer an IPv4 address.
-        for (const auto ipType : {QHostAddress::IPv4Protocol, QHostAddress::IPv6Protocol}) {
-            for (const auto &addressEntry : netint_.addressEntries()) {
-                if (addressEntry.ip().protocol() == ipType) {
-                    return addressEntry.ip();
-                }
-            }
-        }
-        throw std::runtime_error("No usable IP Address");
-    }();
-    const auto url = [this, &receiverAddress]() {
+    const auto url = [this]() {
         QUrl r;
         r.setScheme("ws");
-        r.setHost(receiverAddress.toString());
+        r.setHost(receiverAddress_.toString());
         r.setPort(port_);
         return r;
     }();
