@@ -1,0 +1,18 @@
+include "Error.fbs";
+include "Hello.fbs";
+include "Ready.fbs";
+
+namespace sacndeathray.message;
+
+union MessageVal {
+    Error,
+    Hello,
+    Ready,
+}
+
+table Message {
+    timestamp:string (required);
+    val:MessageVal (required);
+}
+
+root_type Message;

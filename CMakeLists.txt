@@ -48,6 +48,7 @@ if (BUILD_APP)
     # Log levels
     add_compile_definitions("SPDLOG_ACTIVE_LEVEL=$<IF:$<CONFIG:Debug>,0,2>")
 
+    add_subdirectory(messages)
     add_subdirectory(sacndeathray)
 
     #    option(BUILD_PACKAGE "Build packages/installers usable on this platform." OFF)

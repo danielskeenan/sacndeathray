@@ -1,0 +1,7 @@
+namespace sacndeathray.message;
+
+table Hello {
+    version:string (required);
+    cid:string (required);
+    universes:[uint16] (required);
+}

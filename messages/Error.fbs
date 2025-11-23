@@ -1,0 +1,5 @@
+namespace sacndeathray.message;
+
+table Error {
+    message:string (required);
+}

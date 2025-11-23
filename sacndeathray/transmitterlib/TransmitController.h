@@ -25,9 +25,9 @@ class TransmitController : public QObject
 public:
     explicit TransmitController(QObject *parent = nullptr);
     ~TransmitController() override;
-    void setInterface(const QNetworkInterface &iface) { config_.iface = iface; }
+    void setInterface(const QNetworkInterface &iface);
     void setRate(const double rate) { config_.rate = rate; }
-    std::string getCid() const;
+    [[nodiscard]] std::string getCid() const { return config_.cid.ToString(); }
     void setUniverses(const std::vector<uint16_t> &universes) { config_.universes = universes; }
 
 Q_SIGNALS:

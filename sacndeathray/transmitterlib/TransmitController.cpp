@@ -7,6 +7,8 @@
  */
 
 #include "TransmitController.h"
+#include "sacndeathray/config.h"
+#include <spdlog/spdlog.h>
 
 namespace sacndeathray {
 
@@ -17,9 +19,33 @@ TransmitController::~TransmitController()
     stop();
 }
 
-std::string TransmitController::getCid() const
+void TransmitController::setInterface(const QNetworkInterface &iface)
 {
-    return config_.cid.ToString();
+    config_.iface = iface;
+
+    const auto macAddress = [&iface]() {
+        std::array<uint8_t, 6> bytes{};
+        if (iface.type() != QNetworkInterface::Ethernet) {
+            SPDLOG_ERROR("Non-ethernet interfaces are not supported.");
+            return bytes;
+        }
+
+        const auto hex = iface.hardwareAddress().split(':');
+        auto bytesIt = bytes.begin();
+        auto hexIt = hex.begin();
+        for (; bytesIt != bytes.end() && hexIt != hex.end(); ++bytesIt, ++hexIt) {
+            bool ok;
+            if (!ok) {
+                SPDLOG_ERROR(
+                    "Bad MAC Address representation: {}", iface.hardwareAddress().toStdString());
+                return bytes;
+            }
+            *bytesIt = static_cast<uint8_t>(hexIt->toUInt(&ok, 16));
+        }
+        return bytes;
+    }();
+
+    config_.cid = etcpal::Uuid::Device(config::kProjectName, macAddress, 0);
 }
 
 void TransmitController::start()
@@ -27,7 +53,12 @@ void TransmitController::start()
     auto *worker = new TransmitWorker(config_, this);
     worker->moveToThread(&workerThread_);
     connect(&workerThread_, &QThread::finished, worker, &QObject::deleteLater);
-    connect(this, &TransmitController::beginTransmission, worker, &TransmitWorker::start, Qt::QueuedConnection);
+    connect(
+        this,
+        &TransmitController::beginTransmission,
+        worker,
+        &TransmitWorker::start,
+        Qt::QueuedConnection);
     workerThread_.start();
     Q_EMIT(beginTransmission());
 }
