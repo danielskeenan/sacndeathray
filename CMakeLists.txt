@@ -37,6 +37,7 @@ if (BUILD_APP)
     set(QT_COMPONENTS
             Core
             Svg
+            WebSockets
             Widgets
     )
     find_package(Qt6 6.10 COMPONENTS ${QT_COMPONENTS} REQUIRED)
