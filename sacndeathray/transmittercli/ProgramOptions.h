@@ -9,20 +9,14 @@
 #ifndef SACNDEATHRAY_TRANSMITTERCLI_PROGRAMOPTIONS_H
 #define SACNDEATHRAY_TRANSMITTERCLI_PROGRAMOPTIONS_H
 
-#include "sacndeathray/config.h"
+#include "sacndeathray/transmitterlib/TransmitOptions.h"
 #include <spdlog/common.h>
-#include <vector>
-#include <QHostAddress>
 
 namespace sacndeathray {
 
-struct ProgramOptions
+struct ProgramOptions : public TransmitOptions
 {
     spdlog::level::level_enum logLevel = spdlog::level::level_enum::info;
-    std::vector<uint16_t> universes{1};
-    double rate = 22;
-    uint16_t port = config::kMessagePort;
-    QHostAddress receiverAddress;
 };
 
 } // namespace sacndeathray

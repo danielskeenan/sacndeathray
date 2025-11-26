@@ -25,6 +25,7 @@ TransmitMessenger::TransmitMessenger(QObject *parent) : QObject(parent), port_(c
         &QWebSocket::binaryMessageReceived,
         this,
         &TransmitMessenger::onMessageReceived);
+    connect(&websocket_, &QWebSocket::errorOccurred, this, &TransmitMessenger::onSocketError);
 }
 
 void TransmitMessenger::start()
@@ -46,7 +47,7 @@ void TransmitMessenger::stop()
 
 void TransmitMessenger::onConnected()
 {
-    Q_EMIT(receiverConnected(QDateTime()));
+    Q_EMIT(receiverConnected(QDateTime::currentDateTimeUtc()));
 }
 
 void TransmitMessenger::onMessageReceived(const QByteArray &data)
@@ -66,17 +67,22 @@ void TransmitMessenger::onMessageReceived(const QByteArray &data)
 
 void TransmitMessenger::onDisconnected()
 {
-    Q_EMIT(receiverDisconnected(QDateTime()));
+    Q_EMIT(receiverDisconnected(QDateTime::currentDateTimeUtc()));
 }
 
-void TransmitMessenger::sendHello(const QString &cid, const std::vector<uint16_t> &universes)
+void TransmitMessenger::onSocketError()
+{
+    Q_EMIT(receiverError(websocket_.errorString(), QDateTime::currentDateTimeUtc()));
+}
+
+void TransmitMessenger::sendHello(const std::string &cid, const std::vector<uint16_t> &universes)
 {
     flatbuffers::FlatBufferBuilder builder;
 
-    const auto timestamp = QDateTime();
+    const auto timestamp = QDateTime::currentDateTimeUtc();
     auto timestampOff = builder.CreateString(message_helpers::fromQDateTime(timestamp));
     auto versionOff = builder.CreateString(config::kProjectVersion);
-    auto cidOff = builder.CreateString(cid.toStdString());
+    auto cidOff = builder.CreateString(cid);
     auto universesOff = builder.CreateVector(universes);
 
     auto helloOff = message::CreateHello(builder, versionOff, cidOff, universesOff);

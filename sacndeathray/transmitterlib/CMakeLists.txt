@@ -5,6 +5,9 @@ qt_add_library(${TARGET} STATIC
         TransmitController.h
         TransmitMessenger.cpp
         TransmitMessenger.h
+        TransmitOptions.h
+        TransmitRunner.cpp
+        TransmitRunner.h
         TransmitWorker.cpp
         TransmitWorker.h
 )

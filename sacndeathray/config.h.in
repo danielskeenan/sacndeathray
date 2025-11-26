@@ -29,6 +29,7 @@ namespace sacndeathray::config {
     const auto kProjectOrganizationDomain = "${PROJECT_ORGANIZATION_DOMAIN}";
     const auto kProjectAuthor = "${PROJECT_AUTHOR}";
 
+    constexpr double kDefaultTransmitRate = 22;
     constexpr uint16_t kMessagePort = 62406;
 }
 

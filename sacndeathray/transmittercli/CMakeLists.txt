@@ -3,8 +3,6 @@ set(TARGET "sacndeathray_transmitter")
 qt_add_executable(${TARGET}
         main.cpp
         ProgramOptions.h
-        Runner.cpp
-        Runner.h
 )
 
 target_link_libraries(${TARGET} PRIVATE

@@ -46,7 +46,7 @@ public Q_SLOTS:
      */
     void start();
     void stop();
-    void sendHello(const QString &cid, const std::vector<uint16_t> &universes);
+    void sendHello(const std::string &cid, const std::vector<uint16_t> &universes);
 
 private:
     QNetworkInterface netint_;
@@ -58,6 +58,7 @@ private Q_SLOTS:
     void onConnected();
     void onMessageReceived(const QByteArray &data);
     void onDisconnected();
+    void onSocketError();
 };
 
 } // namespace sacndeathray
