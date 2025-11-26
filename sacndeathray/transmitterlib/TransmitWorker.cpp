@@ -7,6 +7,7 @@
  */
 
 #include "TransmitWorker.h"
+#include "sacndeathray/common/McastInterfaces.h"
 #include "sacndeathray/config.h"
 #include <fmt/ranges.h>
 #include <spdlog/spdlog.h>
@@ -21,38 +22,11 @@ TransmitWorker::TransmitWorker(const Config &config, QObject *parent) :
     connect(timer_, &QTimer::timeout, this, &TransmitWorker::tick);
 }
 
-static const std::unordered_map<QHostAddress::NetworkLayerProtocol, etcpal_iptype_t>
-    kProtocolIpTypeMap{
-        {QHostAddress::NetworkLayerProtocol::IPv4Protocol, kEtcPalIpTypeV4},
-        {QHostAddress::NetworkLayerProtocol::IPv6Protocol, kEtcPalIpTypeV6},
-    };
-
-std::vector<SacnMcastInterface> mcastInterfaces(const QNetworkInterface &iface)
-{
-    std::unordered_set<QHostAddress::NetworkLayerProtocol> protocolsUsed;
-    for (const auto &addressEntry : iface.addressEntries()) {
-        const auto protocol = addressEntry.ip().protocol();
-        if (!protocolsUsed.contains(protocol)) {
-            protocolsUsed.insert(protocol);
-        }
-    }
-
-    std::vector<SacnMcastInterface> mcastInterfaces;
-    for (const auto protocol : protocolsUsed) {
-        const auto ipType = kProtocolIpTypeMap.find(protocol);
-        if (ipType != kProtocolIpTypeMap.end()) {
-            EtcPalMcastNetintId netint{ipType->second, static_cast<unsigned int>(iface.index())};
-            mcastInterfaces.emplace_back(netint);
-        }
-    }
-
-    return mcastInterfaces;
-}
-
 void TransmitWorker::start()
 {
     SPDLOG_INFO("Staring transmitter {} on universes {}", config_.cid.ToString(), config_.universes);
     sacn::Source::Settings sourceSettings(config_.cid, config::kProjectDisplayName);
+    // Processed in TransmitWorker::tick; this allows us to control transmit timing.
     sourceSettings.manually_process_source = true;
     source_.reset(new sacn::Source);
     auto result = source_->Startup(sourceSettings);

@@ -30,6 +30,9 @@ struct SourceDeleter
 };
 } // namespace detail
 
+/**
+ * @see TransmitController
+ */
 class TransmitWorker : public QObject
 {
     Q_OBJECT

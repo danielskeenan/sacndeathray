@@ -1,5 +1,6 @@
 configure_file(config.h.in ${PROJECT_BINARY_DIR}/sacndeathray/config.h)
 
 add_subdirectory(common)
+add_subdirectory(receiverlib)
 add_subdirectory(transmitterlib)
 add_subdirectory(transmittercli)
