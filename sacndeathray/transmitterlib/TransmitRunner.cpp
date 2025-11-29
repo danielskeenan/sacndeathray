@@ -8,6 +8,8 @@
 
 #include "TransmitRunner.h"
 
+#include <QTimer>
+
 #include "etcpal/cpp/netint.h"
 #include <spdlog/spdlog.h>
 
@@ -24,6 +26,11 @@ TransmitRunner::TransmitRunner(const TransmitOptions &transmitOptions, QObject *
         &TransmitRunner::onReceiverConnected);
     connect(messenger_, &TransmitMessenger::receiverError, this, &TransmitRunner::onReceiverError);
     connect(messenger_, &TransmitMessenger::receiverReady, this, &TransmitRunner::onReceiverReady);
+    connect(
+        messenger_,
+        &TransmitMessenger::receiverSentResults,
+        this,
+        &TransmitRunner::onReceiverResults);
 }
 
 void TransmitRunner::start()
@@ -53,6 +60,12 @@ void TransmitRunner::start()
     messenger_->start();
     SPDLOG_INFO("Connecting to receiver...");
     controller_->start();
+}
+
+void TransmitRunner::endTest()
+{
+    messenger_->sendStop();
+    controller_->setIncrement(0);
 }
 
 void TransmitRunner::stop()
@@ -104,8 +117,16 @@ void TransmitRunner::onReceiverReady()
 {
     // Increment starts at 0 to allow the receiver to listen for us. Once the receiver hears us, begin
     // incrementing the test slot. The receiver sends its ready message once it hears us.
-    SPDLOG_INFO("Beginning test");
+    SPDLOG_INFO("Beginning test for {} second(s)", transmitOptions_.duration.count());
     controller_->setIncrement(1);
+    QTimer::singleShot(transmitOptions_.duration, this, &TransmitRunner::endTest);
+}
+
+void TransmitRunner::onReceiverResults(
+    const QDateTime &transmitterFound, const std::vector<DataMismatch> &dataMismatches)
+{
+    SPDLOG_INFO("Results ready");
+    Q_EMIT(resultsReady(transmitterFound, dataMismatches));
 }
 
 } // namespace sacndeathray

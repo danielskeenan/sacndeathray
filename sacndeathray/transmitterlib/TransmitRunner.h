@@ -27,9 +27,12 @@ public:
 
 Q_SIGNALS:
     void finished();
+    void resultsReady(
+        const QDateTime &transmitterFound, const std::vector<DataMismatch> &dataMismatches);
 
 public Q_SLOTS:
     void start();
+    void endTest();
     void stop();
 
 private:
@@ -43,6 +46,8 @@ private Q_SLOTS:
     void onReceiverConnected();
     void onReceiverError(const QString &message, const QDateTime &timestamp);
     void onReceiverReady();
+    void onReceiverResults(
+        const QDateTime &transmitterFound, const std::vector<DataMismatch> &dataMismatches);
 };
 
 } // namespace sacndeathray

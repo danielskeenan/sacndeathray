@@ -61,6 +61,22 @@ void TransmitMessenger::onMessageReceived(const QByteArray &data)
         Q_EMIT(receiverError(errorStr, timestamp));
     } else if (message->val_type() == message::ReceiverMessageVal::Ready) {
         Q_EMIT(receiverReady(timestamp));
+    } else if (message->val_type() == message::ReceiverMessageVal::Stop) {
+        Q_EMIT(receiverRequestedStop(timestamp));
+    } else if (message->val_type() == message::ReceiverMessageVal::Results) {
+        const auto resultsMessage = message->val_as_Results();
+        const auto transmitterFound = message_helpers::toQDateTime(
+            resultsMessage->transmitterFound());
+        std::vector<DataMismatch> dataMismatches;
+        dataMismatches.reserve(resultsMessage->mismatches()->size());
+        for (auto mismatchIt = resultsMessage->mismatches()->cbegin();
+             mismatchIt != resultsMessage->mismatches()->cend();
+             ++mismatchIt) {
+            const auto universe = mismatchIt->universe();
+            const auto mismatchTimestamp = message_helpers::toQDateTime(mismatchIt->timestamp());
+            dataMismatches.emplace_back(universe, mismatchTimestamp);
+        }
+        Q_EMIT(receiverSentResults(transmitterFound, dataMismatches));
     }
 }
 
@@ -88,6 +104,24 @@ void TransmitMessenger::sendHello(const std::string &cid, const std::vector<uint
 
     auto messageOff = message::CreateTransmitterMessage(
         builder, timestampOff, message::TransmitterMessageVal::Hello, helloOff.Union());
+    builder.Finish(messageOff);
+
+    const auto data = QByteArray::fromRawData(
+        reinterpret_cast<const char *>(builder.GetBufferPointer()), builder.GetSize());
+    websocket_.sendBinaryMessage(data);
+}
+
+void TransmitMessenger::sendStop()
+{
+    flatbuffers::FlatBufferBuilder builder;
+
+    const auto timestamp = QDateTime::currentDateTimeUtc();
+    auto timestampOff = builder.CreateString(message_helpers::fromQDateTime(timestamp));
+
+    auto stopOff = message::CreateStop(builder);
+
+    auto messageOff = message::CreateTransmitterMessage(
+        builder, timestampOff, message::TransmitterMessageVal::Stop, stopOff.Union());
     builder.Finish(messageOff);
 
     const auto data = QByteArray::fromRawData(

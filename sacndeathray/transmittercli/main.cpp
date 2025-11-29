@@ -23,6 +23,8 @@
 #include <QTimer>
 #include <QTranslator>
 
+#include "ResultsPrinter.h"
+
 using namespace sacndeathray;
 
 struct CommandLineParseResult
@@ -57,39 +59,39 @@ CommandLineParseResult parseCommandLine(QCommandLineParser &parser)
     QCommandLineOption logLevelOpt(QStringList{"l", "log"});
     logLevelOpt.setDescription(qApp->translate("main", "Log Level"));
     logLevelOpt.setValueName(qApp->translate("main", "0-5"));
-    logLevelOpt.setDefaultValue(QString::number(spdlog::level::critical - spdlog::level::info));
     logLevelOpt.setFlags(QCommandLineOption::ShortOptionStyle);
     parser.addOption(logLevelOpt);
     // Rate
     QCommandLineOption rateOpt(QStringList{"rate"});
     rateOpt.setDescription(qApp->translate("main", "Transmit rate (Hz)"));
     rateOpt.setValueName(qApp->translate("main", "1-44"));
-    rateOpt.setDefaultValue(QString::number(config::kDefaultTransmitRate));
     parser.addOption(rateOpt);
     // Universes
     QCommandLineOption universesOpt(QStringList{"u", "universe"});
     universesOpt.setDescription(qApp->translate(
         "main", "Universes to use; specify more than once to use more than one universe"));
     universesOpt.setValueName(qApp->translate("main", "univ"));
-    universesOpt.setDefaultValues({"1"});
     parser.addOption(universesOpt);
     // Port
     QCommandLineOption portOpt(QStringList{"p", "port"});
     portOpt.setDescription(qApp->translate("main", "Port to communicate with the receiver on"));
     portOpt.setValueName(qApp->translate("main", "port"));
-    portOpt.setDefaultValue(QString::number(config::kMessagePort));
     parser.addOption(portOpt);
     // Network interface
     QCommandLineOption netIntOpt(QStringList{"i", "interface"});
     netIntOpt.setDescription(qApp->translate("main", "Network interface name"));
     netIntOpt.setValueName(qApp->translate("main", "name"));
-    netIntOpt.setDefaultValue({});
     parser.addOption(netIntOpt);
     // List network interfaces
     QCommandLineOption listNetIntOpt(QStringList{"list-interfaces"});
     listNetIntOpt.setDescription(
         qApp->translate("main", "List all network interfaces on this system and exit"));
     parser.addOption(listNetIntOpt);
+    // Duration
+    QCommandLineOption durationOpt(QStringList{"d", "duration"});
+    durationOpt.setDescription(qApp->translate("main", "Duration to test for"));
+    durationOpt.setValueName(qApp->translate("main", "seconds"));
+    parser.addOption(durationOpt);
     // Receiver address
     parser.addPositionalArgument("receiver", qApp->translate("main", "Receiver IP Address"));
 
@@ -194,6 +196,20 @@ CommandLineParseResult parseCommandLine(QCommandLineParser &parser)
         programOptions.netInt = netInt;
     }
 
+    // Duration
+    if (parser.isSet(durationOpt)) {
+        bool ok;
+        const auto seconds = parser.value(durationOpt).toULongLong(&ok);
+        if (!ok || seconds == 0) {
+            return CommandLineParseResult(
+                Status::Error, qApp->translate("main", "Duration must be >0 seconds."));
+        }
+        programOptions.duration = std::chrono::seconds(seconds);
+    } else {
+        // Default to 1 minute.
+        programOptions.duration = std::chrono::seconds(60);
+    }
+
     return programOptions;
 }
 
@@ -272,6 +288,9 @@ int main(int argc, char *argv[])
     // Run program from the event loop.
     TransmitRunner runner(parseResult.programOptions, qApp);
     QObject::connect(&runner, &TransmitRunner::finished, qApp, &QCoreApplication::quit);
+    ResultsPrinter printer(qApp);
+    QObject::connect(&runner, &TransmitRunner::resultsReady, &printer, &ResultsPrinter::printResults);
+    QObject::connect(&runner, &TransmitRunner::resultsReady, &runner, &TransmitRunner::stop);
     QTimer::singleShot(0, [&runner]() { runner.start(); });
     const auto ret = app.exec();
 

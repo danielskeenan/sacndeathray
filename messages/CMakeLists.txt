@@ -5,6 +5,8 @@ set(MESSAGE_SOURCES
         Hello.fbs
         Ready.fbs
         ReceiverMessage.fbs
+        Results.fbs
+        Stop.fbs
         TransmitterMessage.fbs
 )
 

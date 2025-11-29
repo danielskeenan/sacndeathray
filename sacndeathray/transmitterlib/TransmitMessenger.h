@@ -9,6 +9,7 @@
 #ifndef SACNDEATHRAY_TRANSMITTERLIB_TRANSMITMESSENGER_H
 #define SACNDEATHRAY_TRANSMITTERLIB_TRANSMITMESSENGER_H
 
+#include "sacndeathray/common/DataMismatch.h"
 #include <QNetworkInterface>
 #include <QObject>
 #include <QWebSocket>
@@ -34,6 +35,8 @@ Q_SIGNALS:
     void receiverConnected(QDateTime timestamp);
     void receiverError(QString msg, QDateTime timestamp);
     void receiverReady(QDateTime timestamp);
+    void receiverRequestedStop(QDateTime timestamp);
+    void receiverSentResults(QDateTime transmitterFound, std::vector<DataMismatch> dataMismatches);
     void receiverDisconnected(QDateTime timestamp);
 
 public Q_SLOTS:
@@ -43,6 +46,7 @@ public Q_SLOTS:
     void start();
     void stop();
     void sendHello(const std::string &cid, const std::vector<uint16_t> &universes);
+    void sendStop();
 
 private:
     uint16_t port_;

@@ -13,6 +13,7 @@
 #include <vector>
 #include <QHostAddress>
 #include <QNetworkInterface>
+#include <chrono>
 
 namespace sacndeathray {
 
@@ -24,8 +25,9 @@ struct TransmitOptions
     QHostAddress receiverAddress;
     /** If not set, will autoselect an interface based on the receiver address. */
     std::optional<QNetworkInterface> netInt;
+    std::chrono::seconds duration;
 };
 
-}
+} // namespace sacndeathray
 
 #endif //SACNDEATHRAY_TRANSMITTERLIB_TRANSMITOPTIONS_H

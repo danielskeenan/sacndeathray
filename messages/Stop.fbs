@@ -1,0 +1,4 @@
+namespace sacndeathray.message;
+
+table Stop {
+}

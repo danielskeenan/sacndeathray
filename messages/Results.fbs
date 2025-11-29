@@ -1,0 +1,11 @@
+namespace sacndeathray.message;
+
+table DataMismatch {
+    universe:uint16;
+    timestamp:string (required);
+}
+
+table Results {
+    transmitter_found:string (required);
+    mismatches:[DataMismatch] (required);
+}

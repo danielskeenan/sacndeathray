@@ -1,6 +1,7 @@
 set(TARGET deathray_common)
 
 qt_add_library(${TARGET} STATIC
+        DataMismatch.h
         EtcPalLogHandler.cpp
         EtcPalLogHandler.h
         McastInterfaces.cpp

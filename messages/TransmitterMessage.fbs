@@ -1,11 +1,13 @@
 include "Error.fbs";
 include "Hello.fbs";
+include "Stop.fbs";
 
 namespace sacndeathray.message;
 
 union TransmitterMessageVal {
     Error,
     Hello,
+    Stop,
 }
 
 table TransmitterMessage {

@@ -1,11 +1,15 @@
 include "Error.fbs";
 include "Ready.fbs";
+include "Results.fbs";
+include "Stop.fbs";
 
 namespace sacndeathray.message;
 
 union ReceiverMessageVal {
     Error,
     Ready,
+    Results,
+    Stop,
 }
 
 table ReceiverMessage {

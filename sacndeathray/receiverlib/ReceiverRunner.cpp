@@ -19,6 +19,8 @@ ReceiverRunner::ReceiverRunner(const ReceiverOptions &receiverOptions, QObject *
         messenger_, &ReceiverMessenger::transmitterError, this, &ReceiverRunner::onTransmitterError);
     connect(
         messenger_, &ReceiverMessenger::transmitterReady, this, &ReceiverRunner::onTransmitterReady);
+    connect(
+        messenger_, &ReceiverMessenger::transmitterRequestedStop, this, &ReceiverRunner::onEndTest);
     connect(controller_, &ReceiverController::dataMismatch, this, &ReceiverRunner::onDataMismatch);
 }
 
@@ -44,7 +46,14 @@ void ReceiverRunner::stop()
     messenger_->stop();
 }
 
-void ReceiverRunner::onTransmitterError(const QString &message, const QDateTime &timestamp) {}
+void ReceiverRunner::onTransmitterError(const QString &message, const QDateTime &timestamp)
+{
+    SPDLOG_CRITICAL(
+        "Transmitter error at {}: {}",
+        timestamp.toString(Qt::ISODateWithMs).toStdString(),
+        message.toStdString());
+    Q_EMIT(finished());
+}
 
 void ReceiverRunner::onTransmitterReady(
     const QUuid &cid, const std::vector<uint16_t> &universes, const QDateTime &timestamp)
@@ -54,8 +63,8 @@ void ReceiverRunner::onTransmitterReady(
     connect(
         controller_,
         &ReceiverController::transmitterFound,
-        messenger_,
-        &ReceiverMessenger::sendReady,
+        this,
+        &ReceiverRunner::onTransmitterFound,
         Qt::SingleShotConnection);
     controller_->setCid(cid);
     controller_->setUniverses(universes);
@@ -63,10 +72,25 @@ void ReceiverRunner::onTransmitterReady(
     SPDLOG_INFO("Beginning test");
 }
 
+void ReceiverRunner::onTransmitterFound(const QDateTime &timestamp)
+{
+    mismatches_.clear();
+    transmitterFound_ = timestamp;
+    messenger_->sendReady();
+}
+
 void ReceiverRunner::onDataMismatch(uint16_t universe, const QDateTime &timestamp)
 {
+    mismatches_.emplace_back(universe, timestamp);
     SPDLOG_INFO(
         "Data mismatch: U{} {}", universe, timestamp.toString(Qt::ISODateWithMs).toStdString());
+}
+
+void ReceiverRunner::onEndTest()
+{
+    controller_->stop();
+    messenger_->sendResults(transmitterFound_, mismatches_);
+    stop();
 }
 
 } // namespace sacndeathray

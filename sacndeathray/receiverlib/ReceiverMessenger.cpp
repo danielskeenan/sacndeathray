@@ -7,13 +7,12 @@
  */
 
 #include "ReceiverMessenger.h"
+#include "sacndeathray/common/message_helpers.h"
 #include "sacndeathray/messages/cpp/ReceiverMessage.h"
 #include "sacndeathray/messages/cpp/TransmitterMessage.h"
 #include <sacndeathray/config.h>
 #include <spdlog/spdlog.h>
 #include <QAbstractSocket>
-
-#include "sacndeathray/common/message_helpers.h"
 
 namespace sacndeathray {
 
@@ -121,6 +120,8 @@ void ReceiverMessenger::onMessageReceived(const QByteArray &data)
         std::vector<uint16_t>
             universes(helloMessage->universes()->cbegin(), helloMessage->universes()->cend());
         Q_EMIT(transmitterReady(cid, universes, QDateTime::currentDateTimeUtc()));
+    } else if (message->val_type() == message::TransmitterMessageVal::Stop) {
+        Q_EMIT(transmitterRequestedStop(timestamp));
     }
 }
 
@@ -162,6 +163,56 @@ void ReceiverMessenger::sendReady()
 
     auto messageOff = message::CreateReceiverMessage(
         builder, timestampOff, message::ReceiverMessageVal::Ready, readyOff.Union());
+    builder.Finish(messageOff);
+
+    const auto data = QByteArray::fromRawData(
+        reinterpret_cast<const char *>(builder.GetBufferPointer()), builder.GetSize());
+    websocket_->sendBinaryMessage(data);
+}
+
+void ReceiverMessenger::sendStop()
+{
+    flatbuffers::FlatBufferBuilder builder;
+
+    const auto timestamp = QDateTime::currentDateTimeUtc();
+    auto timestampOff = builder.CreateString(message_helpers::fromQDateTime(timestamp));
+
+    auto stopOff = message::CreateStop(builder);
+
+    auto messageOff = message::CreateReceiverMessage(
+        builder, timestampOff, message::ReceiverMessageVal::Stop, stopOff.Union());
+    builder.Finish(messageOff);
+
+    const auto data = QByteArray::fromRawData(
+        reinterpret_cast<const char *>(builder.GetBufferPointer()), builder.GetSize());
+    websocket_->sendBinaryMessage(data);
+}
+
+void ReceiverMessenger::sendResults(
+    const QDateTime &transmitterFound, const std::vector<DataMismatch> &dataMismatches)
+{
+    flatbuffers::FlatBufferBuilder builder;
+
+    const auto timestamp = QDateTime::currentDateTimeUtc();
+    auto timestampOff = builder.CreateString(message_helpers::fromQDateTime(timestamp));
+
+    auto transmitterFoundOff = builder.CreateString(
+        message_helpers::fromQDateTime(transmitterFound));
+
+    std::vector<flatbuffers::Offset<message::DataMismatch>> dataMismatchOffs;
+    for (const auto &dataMismatch : dataMismatches) {
+        auto dataMismatchTimestampOff = builder.CreateString(
+            message_helpers::fromQDateTime(dataMismatch.timestamp));
+        auto dataMismatchOff
+            = message::CreateDataMismatch(builder, dataMismatch.universe, dataMismatchTimestampOff);
+        dataMismatchOffs.push_back(dataMismatchOff);
+    }
+    auto dataMismatchesOff = builder.CreateVector(dataMismatchOffs);
+
+    auto resultsOff = message::CreateResults(builder, transmitterFoundOff, dataMismatchesOff);
+
+    auto messageOff = message::CreateReceiverMessage(
+        builder, timestampOff, message::ReceiverMessageVal::Results, resultsOff.Union());
     builder.Finish(messageOff);
 
     const auto data = QByteArray::fromRawData(
