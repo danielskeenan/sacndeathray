@@ -18,6 +18,23 @@ namespace sacndeathray {
 
 /**
  * Run the transmitter.
+ *
+ * Order of operation:
+ *
+ * - Call start(). The messenger will attempt to connect to receiver defined in @p transmitOptions.
+ *   Once connected...
+ * - Send a Hello message (Hello.fbs) to tell the receiver our details. At the same time, begin
+ *   transmitting on all universes but don't start the test sequence. This will allow...
+ * - Receiver will open an sACN Receiver and look for our CID transmitting. Once it sees the
+ *   transmitter...
+ * - Receiver will send a Ready message (Ready.fbs). The whole process to this point should only
+ *   take a couple seconds!
+ * - Once we get the Ready message, begin transmitting the test sequence for the duration defined in
+ *   @p transmitOptions.
+ * - When the duration has run, ask the receiver for results and stop transmitting.
+ * - Emit resultsReady() with the results from the receiver.
+ *
+ * @see ReceiverRunner
  */
 class TransmitRunner : public QObject
 {

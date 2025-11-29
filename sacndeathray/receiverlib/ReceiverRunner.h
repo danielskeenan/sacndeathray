@@ -19,6 +19,8 @@ namespace sacndeathray {
 
 /**
  * Run the receiver.
+ *
+ * @see TransmitRunner
  */
 class ReceiverRunner : public QObject
 {
