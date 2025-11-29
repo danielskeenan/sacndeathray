@@ -19,6 +19,7 @@ ReceiverRunner::ReceiverRunner(const ReceiverOptions &receiverOptions, QObject *
         messenger_, &ReceiverMessenger::transmitterError, this, &ReceiverRunner::onTransmitterError);
     connect(
         messenger_, &ReceiverMessenger::transmitterReady, this, &ReceiverRunner::onTransmitterReady);
+    connect(controller_, &ReceiverController::dataMismatch, this, &ReceiverRunner::onDataMismatch);
 }
 
 void ReceiverRunner::start()
@@ -50,10 +51,22 @@ void ReceiverRunner::onTransmitterReady(
 {
     SPDLOG_INFO("Got transmitter {}", cid.toString().toStdString());
 
+    connect(
+        controller_,
+        &ReceiverController::transmitterFound,
+        messenger_,
+        &ReceiverMessenger::sendReady,
+        Qt::SingleShotConnection);
     controller_->setCid(cid);
     controller_->setUniverses(universes);
     controller_->start();
-    messenger_->sendReady();
+    SPDLOG_INFO("Beginning test");
+}
+
+void ReceiverRunner::onDataMismatch(uint16_t universe, const QDateTime &timestamp)
+{
+    SPDLOG_INFO(
+        "Data mismatch: U{} {}", universe, timestamp.toString(Qt::ISODateWithMs).toStdString());
 }
 
 } // namespace sacndeathray

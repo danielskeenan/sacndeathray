@@ -7,7 +7,7 @@
  */
 
 #include "McastInterfaces.h"
-#include <unordered_set>
+#include <etcpal/cpp/netint.h>
 
 namespace sacndeathray {
 
@@ -19,24 +19,25 @@ static const std::unordered_map<QHostAddress::NetworkLayerProtocol, etcpal_iptyp
 
 std::vector<SacnMcastInterface> mcastInterfaces(const QNetworkInterface &iface)
 {
-    std::unordered_set<QHostAddress::NetworkLayerProtocol> protocolsUsed;
-    for (const auto &addressEntry : iface.addressEntries()) {
-        const auto protocol = addressEntry.ip().protocol();
-        if (!protocolsUsed.contains(protocol)) {
-            protocolsUsed.insert(protocol);
+    std::vector<SacnMcastInterface> r;
+
+    for (const auto &address : iface.addressEntries()) {
+        const auto ip = etcpal::IpAddr::FromString(address.ip().toString().toStdString());
+        auto sacnNetInterface = etcpal::netint::GetInterfaceWithIp(ip);
+        if (!sacnNetInterface.has_value() || !sacnNetInterface->IsValid()
+            || !etcpal::netint::IsUp(sacnNetInterface->index())) {
+            continue;
         }
+        r.emplace_back(SacnMcastInterface{
+        .iface = {
+            .ip_type = sacnNetInterface->addr().raw_type(),
+            .index = sacnNetInterface->index().value(),
+        },
+        .status = kEtcPalErrOk,
+        });
     }
 
-    std::vector<SacnMcastInterface> mcastInterfaces;
-    for (const auto protocol : protocolsUsed) {
-        const auto ipType = kProtocolIpTypeMap.find(protocol);
-        if (ipType != kProtocolIpTypeMap.end()) {
-            EtcPalMcastNetintId netint{ipType->second, static_cast<unsigned int>(iface.index())};
-            mcastInterfaces.emplace_back(netint);
-        }
-    }
-
-    return mcastInterfaces;
+    return r;
 }
 
 } // namespace sacndeathray

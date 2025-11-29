@@ -42,6 +42,7 @@ private:
 private Q_SLOTS:
     void onReceiverConnected();
     void onReceiverError(const QString &message, const QDateTime &timestamp);
+    void onReceiverReady();
 };
 
 } // namespace sacndeathray

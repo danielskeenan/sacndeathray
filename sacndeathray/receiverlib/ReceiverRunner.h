@@ -41,6 +41,7 @@ private Q_SLOTS:
     void onTransmitterError(const QString &message, const QDateTime &timestamp);
     void onTransmitterReady(
         const QUuid &cid, const std::vector<uint16_t> &universes, const QDateTime &timestamp);
+    void onDataMismatch(uint16_t universe, const QDateTime &timestamp);
 };
 
 } // namespace sacndeathray

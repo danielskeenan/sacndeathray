@@ -29,10 +29,13 @@ public:
     void setRate(const double rate) { config_.rate = rate; }
     [[nodiscard]] std::string getCid() const { return config_.cid.ToString(); }
     void setUniverses(const std::vector<uint16_t> &universes) { config_.universes = universes; }
+    void setIncrement(uint8_t increment);
 
 Q_SIGNALS:
     /** @internal */
     void beginTransmission();
+    /** @internal */
+    void requestSetIncrement(uint8_t increment);
 
 public Q_SLOTS:
     void start();

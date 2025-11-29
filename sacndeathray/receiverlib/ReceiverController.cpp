@@ -25,6 +25,10 @@ void ReceiverHandler::HandleUniverseData(
         // Don't care about this source.
         return;
     }
+    if (!found_) {
+        found_ = true;
+        Q_EMIT(transmitterFound(QDateTime::currentDateTimeUtc()));
+    }
 
     const auto checkSlot = universeData.values[0];
     if (checkSlot == currentValue_) {
@@ -34,7 +38,7 @@ void ReceiverHandler::HandleUniverseData(
 
     if (checkSlot != nextValue_) {
         // Out of order or dropped packet.
-        Q_EMIT(dataMismatch(QDateTime::currentDateTimeUtc()));
+        Q_EMIT(dataMismatch(universe_, QDateTime::currentDateTimeUtc()));
     }
 
     currentValue_ = checkSlot;
@@ -47,6 +51,8 @@ void ReceiverHandler::HandleSourcesLost(
     for (const auto &source : lostSources) {
         if (source.cid == cid_) {
             Q_EMIT(transmitterLost(QDateTime::currentDateTimeUtc()));
+            found_ = false;
+            return;
         }
     }
 }
@@ -66,12 +72,19 @@ void ReceiverController::start()
 
     auto netints = mcastInterfaces(config_.iface);
     for (const auto universe : config_.universes) {
-        auto &handler = handlers_.emplace_back(new detail::ReceiverHandler(config_.cid, this));
+        auto &handler = handlers_.emplace_back(
+            new detail::ReceiverHandler(universe, config_.cid, this));
         connect(
             handler.get(),
             &detail::ReceiverHandler::dataMismatch,
             this,
             &ReceiverController::dataMismatch,
+            Qt::QueuedConnection);
+        connect(
+            handler.get(),
+            &detail::ReceiverHandler::transmitterFound,
+            this,
+            &ReceiverController::transmitterFound,
             Qt::QueuedConnection);
         connect(
             handler.get(),

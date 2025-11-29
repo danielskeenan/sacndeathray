@@ -37,8 +37,8 @@ class ReceiverHandler : public QObject, public sacn::Receiver::NotifyHandler
 {
     Q_OBJECT
 public:
-    explicit ReceiverHandler(const etcpal::Uuid cid, QObject *parent = nullptr) :
-        QObject(parent), cid_(cid)
+    explicit ReceiverHandler(uint16_t universe, const etcpal::Uuid cid, QObject *parent = nullptr) :
+        QObject(parent), universe_(universe), cid_(cid)
     {}
 
     /** @internal */
@@ -54,10 +54,13 @@ public:
         const std::vector<SacnLostSource> &lostSources) override;
 
 Q_SIGNALS:
+    void transmitterFound(QDateTime timestamp);
     void transmitterLost(QDateTime timestamp);
-    void dataMismatch(QDateTime timestamp);
+    void dataMismatch(uint16_t universe, QDateTime timestamp);
 
 private:
+    bool found_ = false;
+    uint16_t universe_;
     etcpal::Uuid cid_;
     uint8_t currentValue_ = 0;
     uint8_t nextValue_ = currentValue_ + 1;
@@ -98,8 +101,9 @@ public:
     void setUniverses(const std::vector<uint16_t> &universes) { config_.universes = universes; }
 
 Q_SIGNALS:
+    void transmitterFound(QDateTime timestamp);
     void transmitterLost(QDateTime timestamp);
-    void dataMismatch(QDateTime timestamp);
+    void dataMismatch(uint16_t universe, QDateTime timestamp);
 
 public Q_SLOTS:
     /**

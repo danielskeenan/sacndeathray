@@ -23,6 +23,7 @@ TransmitRunner::TransmitRunner(const TransmitOptions &transmitOptions, QObject *
         this,
         &TransmitRunner::onReceiverConnected);
     connect(messenger_, &TransmitMessenger::receiverError, this, &TransmitRunner::onReceiverError);
+    connect(messenger_, &TransmitMessenger::receiverReady, this, &TransmitRunner::onReceiverReady);
 }
 
 void TransmitRunner::start()
@@ -51,6 +52,7 @@ void TransmitRunner::start()
     // Start the process.
     messenger_->start();
     SPDLOG_INFO("Connecting to receiver...");
+    controller_->start();
 }
 
 void TransmitRunner::stop()
@@ -96,6 +98,14 @@ void TransmitRunner::onReceiverError(const QString &message, const QDateTime &ti
         timestamp.toString(Qt::ISODateWithMs).toStdString(),
         message.toStdString());
     Q_EMIT(finished());
+}
+
+void TransmitRunner::onReceiverReady()
+{
+    // Increment starts at 0 to allow the receiver to listen for us. Once the receiver hears us, begin
+    // incrementing the test slot. The receiver sends its ready message once it hears us.
+    SPDLOG_INFO("Beginning test");
+    controller_->setIncrement(1);
 }
 
 } // namespace sacndeathray

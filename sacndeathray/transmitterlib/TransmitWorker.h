@@ -63,8 +63,15 @@ public Q_SLOTS:
      */
     void stop();
 
+    /**
+     * Change the increment amount on the test slot.
+     * @param increment
+     */
+    void setIncrement(uint8_t increment);
+
 private:
     Config config_;
+    std::atomic<uint8_t> increment_{0};
     QTimer *timer_;
     std::unique_ptr<sacn::Source, detail::SourceDeleter> source_;
     std::array<uint8_t, 512> levelBuffer_{};

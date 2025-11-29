@@ -49,9 +49,14 @@ void TransmitController::setInterface(const QNetworkInterface &iface)
     config_.cid = etcpal::Uuid::Device(config::kProjectName, macAddress, 0);
 }
 
+void TransmitController::setIncrement(const uint8_t increment)
+{
+    Q_EMIT(requestSetIncrement(increment));
+}
+
 void TransmitController::start()
 {
-    auto *worker = new TransmitWorker(config_, this);
+    auto *worker = new TransmitWorker(config_);
     worker->moveToThread(&workerThread_);
     connect(&workerThread_, &QThread::finished, worker, &QObject::deleteLater);
     connect(
@@ -59,6 +64,12 @@ void TransmitController::start()
         &TransmitController::beginTransmission,
         worker,
         &TransmitWorker::start,
+        Qt::QueuedConnection);
+    connect(
+        this,
+        &TransmitController::requestSetIncrement,
+        worker,
+        &TransmitWorker::setIncrement,
         Qt::QueuedConnection);
     workerThread_.start();
     Q_EMIT(beginTransmission());

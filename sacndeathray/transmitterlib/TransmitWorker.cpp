@@ -54,11 +54,19 @@ void TransmitWorker::stop()
     source_.reset();
 }
 
+void TransmitWorker::setIncrement(const uint8_t increment)
+{
+    increment_ = increment;
+}
+
 void TransmitWorker::tick()
 {
+    for (const auto univ : config_.universes) {
+        source_->UpdateLevels(univ, levelBuffer_.data(), levelBuffer_.size());
+    }
     source_->ProcessManual(sacn::Source::TickMode::kProcessLevelsOnly);
     // Overflow wraps value back to 0.
-    ++levelBuffer_[0];
+    levelBuffer_[0] += increment_.load();
 }
 
 } // namespace sacndeathray
