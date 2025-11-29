@@ -44,6 +44,7 @@ void ReceiverRunner::stop()
 {
     controller_->stop();
     messenger_->stop();
+    Q_EMIT(finished());
 }
 
 void ReceiverRunner::onTransmitterError(const QString &message, const QDateTime &timestamp)
