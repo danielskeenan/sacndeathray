@@ -34,6 +34,7 @@ void ReceiverRunner::start()
 
     // Start the process.
     messenger_->start();
+    SPDLOG_INFO("Waiting for transmitter...");
 }
 
 void ReceiverRunner::stop()

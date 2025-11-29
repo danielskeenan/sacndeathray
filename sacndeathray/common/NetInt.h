@@ -20,6 +20,12 @@ namespace sacndeathray {
  */
 std::vector<QNetworkInterface> getNetInts();
 
+/**
+ * Print network interfaces to @p out.
+ * @param out
+ */
+void printNetInts (std::ostream& out);
+
 } // namespace sacndeathray
 
 #endif //SACNDEATHRAY_COMMON_NETINT_H
