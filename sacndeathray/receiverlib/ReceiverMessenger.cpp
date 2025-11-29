@@ -40,6 +40,7 @@ void ReceiverMessenger::start()
             "Could not find host address for netint {}", netint_.humanReadableName().toStdString());
         throw std::runtime_error("Could not find host address for netint");
     }
+    SPDLOG_INFO("Listening on {}:{}", hostAddress.toString().toStdString(), port_);
     if (!websocketServer_->listen(hostAddress, port_)) {
         SPDLOG_CRITICAL(
             "Could not start websocket server: {}", websocketServer_->errorString().toStdString());
@@ -87,6 +88,12 @@ void ReceiverMessenger::onNewConnection()
             "a bug.");
     }
     websocket_.reset(newWebsocket);
+    connect(
+        newWebsocket,
+        &QWebSocket::binaryMessageReceived,
+        this,
+        &ReceiverMessenger::onMessageReceived);
+    connect(newWebsocket, &QWebSocket::disconnected, this, &ReceiverMessenger::onConnectionClosed);
     Q_EMIT(transmitterConnected(QDateTime::currentDateTimeUtc()));
 }
 

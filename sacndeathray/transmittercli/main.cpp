@@ -151,6 +151,8 @@ CommandLineParseResult parseCommandLine(QCommandLineParser &parser)
             }
             programOptions.universes.push_back(universe);
         }
+    } else {
+        programOptions.universes = {1};
     }
 
     // Receiver address
@@ -224,7 +226,7 @@ int main(int argc, char *argv[])
         Q_UNREACHABLE_RETURN(0);
     case CommandLineParseResult::Status::ListNetIntsRequested:
         printNetInts(std::cout);
-        return(0);
+        return (0);
     }
 
     spdlog::set_level(parseResult.programOptions.logLevel);

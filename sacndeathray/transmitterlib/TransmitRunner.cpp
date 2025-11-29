@@ -17,6 +17,11 @@ TransmitRunner::TransmitRunner(const TransmitOptions &transmitOptions, QObject *
     QObject(parent), transmitOptions_(transmitOptions), controller_(new TransmitController(this)),
     messenger_(new TransmitMessenger(this))
 {
+    connect(
+        messenger_,
+        &TransmitMessenger::receiverConnected,
+        this,
+        &TransmitRunner::onReceiverConnected);
     connect(messenger_, &TransmitMessenger::receiverError, this, &TransmitRunner::onReceiverError);
 }
 
@@ -45,7 +50,7 @@ void TransmitRunner::start()
 
     // Start the process.
     messenger_->start();
-    messenger_->sendHello(controller_->getCid(), transmitOptions_.universes);
+    SPDLOG_INFO("Connecting to receiver...");
 }
 
 void TransmitRunner::stop()
@@ -76,6 +81,12 @@ void TransmitRunner::detectCorrectNetInt()
 
     SPDLOG_INFO("Using {}", netInt.humanReadableName().toStdString());
     transmitOptions_.netInt = netInt;
+}
+
+void TransmitRunner::onReceiverConnected()
+{
+    SPDLOG_INFO("Saying hello");
+    messenger_->sendHello(controller_->getCid(), transmitOptions_.universes);
 }
 
 void TransmitRunner::onReceiverError(const QString &message, const QDateTime &timestamp)
