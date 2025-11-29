@@ -1,19 +1,20 @@
 /**
- * @file ReceiverWorker.h
+ * @file ReceiverController.h
  *
  * @author Dan Keenan
  * @date 11/26/2025
  * @copyright GPL-3.0-or-later
  */
 
-#ifndef SACNDEATHRAY_RECEIVERLIB_RECEIVERWORKER_H
-#define SACNDEATHRAY_RECEIVERLIB_RECEIVERWORKER_H
+#ifndef SACNDEATHRAY_RECEIVERLIB_RECEIVERCONTROLLER_H
+#define SACNDEATHRAY_RECEIVERLIB_RECEIVERCONTROLLER_H
 
 #include <sacn/cpp/receiver.h>
 #include <vector>
 #include <QDateTime>
 #include <QNetworkInterface>
 #include <QObject>
+#include <QUuid>
 
 namespace sacndeathray {
 
@@ -75,9 +76,9 @@ struct ReceiverHandlerDeleter
 } // namespace detail
 
 /**
- * @see ReceiverController
+ * Manage the sACN Receiver.
  */
-class ReceiverWorker : public QObject
+class ReceiverController : public QObject
 {
     Q_OBJECT
 public:
@@ -90,7 +91,11 @@ public:
         /** Universes to listen on */
         std::vector<uint16_t> universes;
     };
-    explicit ReceiverWorker(const Config &config, QObject *parent = nullptr);
+    explicit ReceiverController(QObject *parent = nullptr);
+    void setInterface(const QNetworkInterface &iface) { config_.iface = iface; }
+    void setCid(const etcpal::Uuid &cid) { config_.cid = cid; }
+    void setCid(const QUuid &cid);
+    void setUniverses(const std::vector<uint16_t> &universes) { config_.universes = universes; }
 
 Q_SIGNALS:
     void transmitterLost(QDateTime timestamp);
@@ -117,4 +122,4 @@ private:
 
 } // namespace sacndeathray
 
-#endif //SACNDEATHRAY_RECEIVERLIB_RECEIVERWORKER_H
+#endif //SACNDEATHRAY_RECEIVERLIB_RECEIVERCONTROLLER_H

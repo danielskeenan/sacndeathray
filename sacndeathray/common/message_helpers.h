@@ -22,23 +22,4 @@ std::string fromQDateTime(const QDateTime &timestamp);
 
 } // namespace sacndeathray::message_helpers
 
-#if SPDLOG_ACTIVE_LEVEL <= SPDLOG_LEVEL_DEBUG
-#define DEATHRAY_LOG_MESSAGE_SENT(data) \
-    { \
-        const auto message = message::GetMessage(data.data()); \
-        SPDLOG_DEBUG( \
-            "Sent {} message with timestamp {}", \
-            message::EnumNameMessageVal(message->val_type()), \
-            message->timestamp()->c_str()); \
-    }
-#define DEATHRAY_LOG_MESSAGE_RECEIVED(message) \
-    SPDLOG_DEBUG( \
-        "Received {} message with timestamp {}", \
-        message::EnumNameMessageVal(message->val_type()), \
-        message->timestamp()->c_str())
-#else
-#define DEATHRAY_LOG_MESSAGE_SENT(...) (void) 0
-#define DEATHRAY_LOG_MESSAGE_RECEIVED(...) (void) 0
-#endif
-
 #endif //SACNDEATHRAY_COMMON_MESSAGE_HELPERS_H

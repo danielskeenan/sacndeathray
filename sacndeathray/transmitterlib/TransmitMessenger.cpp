@@ -8,8 +8,8 @@
 
 #include "TransmitMessenger.h"
 #include "sacndeathray/common/message_helpers.h"
-#include "sacndeathray/messages/cpp/Hello.h"
-#include "sacndeathray/messages/cpp/Message.h"
+#include "sacndeathray/messages/cpp/ReceiverMessage.h"
+#include "sacndeathray/messages/cpp/TransmitterMessage.h"
 #include <flatbuffers/flatbuffers.h>
 #include <sacndeathray/config.h>
 #include <spdlog/spdlog.h>
@@ -52,15 +52,14 @@ void TransmitMessenger::onConnected()
 
 void TransmitMessenger::onMessageReceived(const QByteArray &data)
 {
-    const auto message = message::GetMessage(data.constData());
+    const auto message = message::GetReceiverMessage(data.constData());
     const auto timestamp = message_helpers::toQDateTime(message->timestamp());
-    DEATHRAY_LOG_MESSAGE_RECEIVED(message);
 
-    if (message->val_type() == message::MessageVal::Error) {
+    if (message->val_type() == message::ReceiverMessageVal::Error) {
         const auto errorMessage = message->val_as_Error();
         const auto errorStr = message_helpers::toQString(errorMessage->message());
         Q_EMIT(receiverError(errorStr, timestamp));
-    } else if (message->val_type() == message::MessageVal::Ready) {
+    } else if (message->val_type() == message::ReceiverMessageVal::Ready) {
         Q_EMIT(receiverReady(timestamp));
     }
 }
@@ -87,13 +86,12 @@ void TransmitMessenger::sendHello(const std::string &cid, const std::vector<uint
 
     auto helloOff = message::CreateHello(builder, versionOff, cidOff, universesOff);
 
-    auto messageOff
-        = message::CreateMessage(builder, timestampOff, message::MessageVal::Hello, helloOff.Union());
+    auto messageOff = message::CreateTransmitterMessage(
+        builder, timestampOff, message::TransmitterMessageVal::Hello, helloOff.Union());
     builder.Finish(messageOff);
 
     const auto data = QByteArray::fromRawData(
         reinterpret_cast<const char *>(builder.GetBufferPointer()), builder.GetSize());
-    DEATHRAY_LOG_MESSAGE_SENT(data);
     websocket_.sendBinaryMessage(data);
 }
 

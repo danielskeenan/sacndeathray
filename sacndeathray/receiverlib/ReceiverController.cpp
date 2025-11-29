@@ -1,15 +1,15 @@
 /**
- * @file ReceiverWorker.cpp
+ * @file ReceiverController.cpp
  *
  * @author Dan Keenan
  * @date 11/26/2025
  * @copyright GPL-3.0-or-later
  */
 
-#include "ReceiverWorker.h"
+#include "ReceiverController.h"
 #include "sacndeathray/common/McastInterfaces.h"
-#include <spdlog/spdlog.h>
 #include <fmt/ranges.h>
+#include <spdlog/spdlog.h>
 
 namespace sacndeathray {
 
@@ -21,7 +21,7 @@ void ReceiverHandler::HandleUniverseData(
     const SacnRemoteSource &sourceInfo,
     const SacnRecvUniverseData &universeData)
 {
-    if (sourceInfo.cid != cid_) {
+    if (sourceInfo.cid != cid_ || universeData.start_code != 0) {
         // Don't care about this source.
         return;
     }
@@ -53,11 +53,14 @@ void ReceiverHandler::HandleSourcesLost(
 
 } // namespace detail
 
-ReceiverWorker::ReceiverWorker(const Config &config, QObject *parent) :
-    QObject(parent), config_(config)
-{}
+ReceiverController::ReceiverController(QObject *parent) : QObject(parent) {}
 
-void ReceiverWorker::start()
+void ReceiverController::setCid(const QUuid &cid)
+{
+    setCid(etcpal::Uuid::FromString(cid.toString(QUuid::WithoutBraces).toStdString()));
+}
+
+void ReceiverController::start()
 {
     SPDLOG_INFO("Starting receiver on universes {}", config_.universes);
 
@@ -68,13 +71,13 @@ void ReceiverWorker::start()
             handler.get(),
             &detail::ReceiverHandler::dataMismatch,
             this,
-            &ReceiverWorker::dataMismatch,
+            &ReceiverController::dataMismatch,
             Qt::QueuedConnection);
         connect(
             handler.get(),
             &detail::ReceiverHandler::transmitterLost,
             this,
-            &ReceiverWorker::transmitterLost,
+            &ReceiverController::transmitterLost,
             Qt::QueuedConnection);
 
         sacn::Receiver::Settings settings(universe);
@@ -83,7 +86,7 @@ void ReceiverWorker::start()
     }
 }
 
-void ReceiverWorker::stop()
+void ReceiverController::stop()
 {
     receivers_.clear();
     handlers_.clear();

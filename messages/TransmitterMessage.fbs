@@ -1,0 +1,16 @@
+include "Error.fbs";
+include "Hello.fbs";
+
+namespace sacndeathray.message;
+
+union TransmitterMessageVal {
+    Error,
+    Hello,
+}
+
+table TransmitterMessage {
+    timestamp:string (required);
+    val:TransmitterMessageVal (required);
+}
+
+root_type TransmitterMessage;

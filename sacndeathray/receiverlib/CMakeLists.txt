@@ -1,8 +1,13 @@
 set(TARGET deathray_receiverlib)
 
 qt_add_library(${TARGET} STATIC
-        ReceiverWorker.cpp
-        ReceiverWorker.h
+        ReceiverController.cpp
+        ReceiverController.h
+        ReceiverMessenger.cpp
+        ReceiverMessenger.h
+        ReceiverOptions.h
+        ReceiverRunner.cpp
+        ReceiverRunner.h
 )
 
 find_package(fmt CONFIG REQUIRED)

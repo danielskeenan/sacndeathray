@@ -11,6 +11,7 @@ qt_add_library(${TARGET} STATIC
         NetInt.h
         SpdlogQtMessageHandler.cpp
         SpdlogQtMessageHandler.h
+        WebSocketDeleter.h
 )
 
 find_package(flatbuffers CONFIG REQUIRED)

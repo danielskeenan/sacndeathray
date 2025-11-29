@@ -3,8 +3,9 @@ find_package(flatbuffers CONFIG REQUIRED)
 set(MESSAGE_SOURCES
         Error.fbs
         Hello.fbs
-        Message.fbs
         Ready.fbs
+        ReceiverMessage.fbs
+        TransmitterMessage.fbs
 )
 
 # Set where generated files go.

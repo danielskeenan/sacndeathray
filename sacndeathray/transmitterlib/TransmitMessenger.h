@@ -23,8 +23,6 @@ class TransmitMessenger : public QObject
     Q_OBJECT
 public:
     explicit TransmitMessenger(QObject *parent = nullptr);
-    [[nodiscard]] const QNetworkInterface &netint() const { return netint_; }
-    void setNetint(const QNetworkInterface &netint) { netint_ = netint; }
     [[nodiscard]] uint16_t port() const { return port_; }
     void setPort(const uint16_t port) { port_ = port; }
     void setReceiverAddress(const QHostAddress &receiverAddress)
@@ -41,15 +39,12 @@ Q_SIGNALS:
 public Q_SLOTS:
     /**
      * Connect to the receiver.
-     *
-     * @throws std::runtime_error If the selected network interface has no usable IP Address.
      */
     void start();
     void stop();
     void sendHello(const std::string &cid, const std::vector<uint16_t> &universes);
 
 private:
-    QNetworkInterface netint_;
     uint16_t port_;
     QWebSocket websocket_;
     QHostAddress receiverAddress_;

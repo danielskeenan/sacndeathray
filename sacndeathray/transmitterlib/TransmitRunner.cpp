@@ -41,7 +41,6 @@ void TransmitRunner::start()
 
     // Setup messenger.
     messenger_->setReceiverAddress(transmitOptions_.receiverAddress);
-    messenger_->setNetint(*transmitOptions_.netInt);
     messenger_->setPort(transmitOptions_.port);
 
     // Start the process.

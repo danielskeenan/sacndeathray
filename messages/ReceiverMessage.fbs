@@ -1,18 +1,16 @@
 include "Error.fbs";
-include "Hello.fbs";
 include "Ready.fbs";
 
 namespace sacndeathray.message;
 
-union MessageVal {
+union ReceiverMessageVal {
     Error,
-    Hello,
     Ready,
 }
 
-table Message {
+table ReceiverMessage {
     timestamp:string (required);
-    val:MessageVal (required);
+    val:ReceiverMessageVal (required);
 }
 
-root_type Message;
+root_type ReceiverMessage;
