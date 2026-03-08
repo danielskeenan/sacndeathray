@@ -5,3 +5,8 @@ FetchContent_Declare(sACN
         EXCLUDE_FROM_ALL
 )
 FetchContent_MakeAvailable(sACN)
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    # ETCPal's bundled SHA1 library triggers this error. We don't use that functionality in this program anyway.
+    target_link_options(EtcPal PUBLIC "-Wno-stringop-overread")
+endif ()

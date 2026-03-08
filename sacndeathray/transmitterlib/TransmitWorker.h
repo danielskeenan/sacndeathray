@@ -14,6 +14,7 @@
 #include <sacn/cpp/source.h>
 #include <QNetworkInterface>
 #include <QObject>
+#include <QTimer>
 
 namespace sacndeathray {
 

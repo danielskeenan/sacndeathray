@@ -45,7 +45,7 @@ void TransmitWorker::start()
     }
 
     levelBuffer_.fill(0);
-    timer_->start((1 / config_.rate) * 1000);
+    timer_->start(static_cast<int>(std::lround((1 / config_.rate) * 1000)));
 }
 
 void TransmitWorker::stop()
