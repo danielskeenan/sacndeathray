@@ -20,11 +20,13 @@ qt_add_translations(${TARGET}
 install(TARGETS ${TARGET}
         BUNDLE DESTINATION .
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
-install(FILES "$<TARGET_RUNTIME_DLLS:${TARGET}>"
-        TYPE BIN
+        COMPONENT receiver
 )
 if (NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    install(FILES "$<TARGET_RUNTIME_DLLS:${TARGET}>"
+            TYPE BIN
+            COMPONENT common
+    )
     qt_generate_deploy_app_script(
             TARGET ${TARGET}
             OUTPUT_SCRIPT DEPLOY_SCRIPT
@@ -36,5 +38,8 @@ if (NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
             -DQT_DEPLOY_LIB_DIR=. -P "${DEPLOY_SCRIPT}"
             VERBATIM
     )
-    install(SCRIPT ${DEPLOY_SCRIPT})
+    install(
+            SCRIPT ${DEPLOY_SCRIPT}
+            COMPONENT common
+    )
 endif ()

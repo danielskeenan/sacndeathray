@@ -22,6 +22,7 @@ qt_add_translations(${TARGET}
 install(TARGETS ${TARGET}
         BUNDLE DESTINATION .
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        COMPONENT transmitter
 )
 #install(FILES "$<TARGET_RUNTIME_DLLS:${TARGET}>"
 #        TYPE BIN

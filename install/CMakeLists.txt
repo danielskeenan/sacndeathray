@@ -1,31 +1,17 @@
-set(CPACK_PACKAGE_DESCRIPTION "${PROJECT_DESCRIPTION}")
+set(CPACK_PACKAGE_NAME "${PROJECT_DISPLAY_NAME}")
 set(CPACK_PACKAGE_VENDOR "${PROJECT_AUTHOR}")
-set(CPACK_PACKAGE_CONTACT "${PROJECT_AUTHOR}")
-if (TARGET ${PROJECT_NAME}-gui)
-  set(CPACK_PACKAGE_EXECUTABLES "${PROJECT_NAME}-gui;${PROJECT_DISPLAY_NAME}")
-endif ()
+set(CPACK_PACKAGE_DESCRIPTION "${PROJECT_DESCRIPTION}")
+set(CPACK_PACKAGE_HOMEPAGE_URL "${PROJECT_HOMEPAGE_URL}")
+set(CPACK_PACKAGE_CONTACT "${PROJECT_AUTHOR} <dk@dankeenan.org>")
+#set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/LICENSE")
+set(CPACK_PACKAGE_CHECKSUM "SHA256")
+set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${PROJECT_VERSION}-${CMAKE_SYSTEM_NAME}")
+set(CPACK_MONOLITHIC_INSTALL Off)
 set(CPACK_STRIP_FILES On)
 
 # Linux
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
   include(GNUInstallDirs)
-  if (TARGET ${PROJECT_NAME}-gui)
-    # .desktop file is filled in with configure-time info
-    configure_file("sacndeathray.desktop" "${CMAKE_CURRENT_BINARY_DIR}/sacndeathray.desktop")
-    install(
-        FILES "${CMAKE_CURRENT_BINARY_DIR}/sacndeathray.desktop"
-        DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/applications"
-        COMPONENT gui
-    )
-
-    # App icon
-    install(
-        FILES "${PROJECT_SOURCE_DIR}/fnsolver/gui/resources/dataprobe.png"
-        RENAME "fnsolver-gui.png"
-        DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/48x48/apps"
-        COMPONENT gui
-    )
-  endif ()
 
   # DEB
   set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS On)
@@ -47,3 +33,27 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
 endif ()
 
 include(CPack)
+
+cpack_add_install_type(all DISPLAY_NAME "All")
+
+if (NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  cpack_add_component(common
+          DISPLAY_NAME "Common"
+          HIDDEN
+  )
+  set(_COMMON_COMPONENT_NAME "common")
+else ()
+  set(_COMMON_COMPONENT_NAME "")
+endif ()
+
+cpack_add_component(transmitter
+        DISPLAY_NAME "Transmitter"
+        DEPENDS "${_COMMON_COMPONENT_NAME}"
+        INSTALL_TYPES all
+)
+
+cpack_add_component(receiver
+        DISPLAY_NAME "Receiver"
+        DEPENDS "${_COMMON_COMPONENT_NAME}"
+        INSTALL_TYPES all
+)
