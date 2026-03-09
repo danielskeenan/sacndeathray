@@ -69,7 +69,7 @@ CommandLineParseResult parseCommandLine(QCommandLineParser &parser)
     // Universes
     QCommandLineOption universesOpt(QStringList{"u", "universe"});
     universesOpt.setDescription(qApp->translate(
-        "main", "Universes to use; specify more than once to use more than one universe"));
+        "main", "Universes to use. Enter a single number or a range (e.g. \"1-10\"). Specify more than once to use more than one universe"));
     universesOpt.setValueName(qApp->translate("main", "univ"));
     parser.addOption(universesOpt);
     // Port
@@ -142,16 +142,32 @@ CommandLineParseResult parseCommandLine(QCommandLineParser &parser)
     if (parser.isSet(universesOpt)) {
         programOptions.universes.clear();
         for (const auto &universeStr : parser.values(universesOpt)) {
-            bool ok;
-            const auto universe = universeStr.toUInt(&ok);
-            if (!ok || universe < kSacnMinimumUniverse || universe > kSacnMaximumUniverse) {
+            const auto parts = universeStr.split('-', Qt::SkipEmptyParts);
+            std::vector<uint16_t> rangeParts;
+            for (const auto &part : parts) {
+                bool ok;
+                const auto universe = part.toUInt(&ok);
+                if (!ok || universe < kSacnMinimumUniverse || universe > kSacnMaximumUniverse) {
+                    return CommandLineParseResult(
+                        Status::Error,
+                        qApp->translate("main", "Universe must be between %1 and %2 inclusive.")
+                            .arg(kSacnMinimumUniverse)
+                            .arg(kSacnMaximumUniverse));
+                }
+                rangeParts.push_back(universe);
+            }
+            if (rangeParts.size() == 1) {
+                programOptions.universes.push_back(rangeParts.front());
+            } else if (rangeParts.size() == 2) {
+                for (uint16_t universe = rangeParts.front(); universe <= rangeParts.back();
+                     ++universe) {
+                    programOptions.universes.push_back(universe);
+                }
+            } else {
                 return CommandLineParseResult(
                     Status::Error,
-                    qApp->translate("main", "Universe must be between %1 and %2 inclusive.")
-                        .arg(kSacnMinimumUniverse)
-                        .arg(kSacnMaximumUniverse));
+                    qApp->translate("main", "Universe range is formatted incorrectly."));
             }
-            programOptions.universes.push_back(universe);
         }
     } else {
         programOptions.universes = {1};
