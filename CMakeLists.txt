@@ -41,7 +41,7 @@ if (BUILD_APP)
             WebSockets
             Widgets
     )
-    find_package(Qt6 6.10 COMPONENTS ${QT_COMPONENTS} REQUIRED)
+    find_package(Qt6 6.8 COMPONENTS ${QT_COMPONENTS} REQUIRED)
     qt_standard_project_setup(
             I18N_SOURCE_LANGUAGE en_US
     )
