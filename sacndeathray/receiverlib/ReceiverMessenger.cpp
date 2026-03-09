@@ -13,6 +13,7 @@
 #include <sacndeathray/config.h>
 #include <spdlog/spdlog.h>
 #include <QAbstractSocket>
+#include <QMetaEnum>
 
 namespace sacndeathray {
 
