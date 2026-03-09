@@ -69,7 +69,8 @@
         "rhs": "Windows"
       },
       "cacheVariables": {
-        "CMAKE_CXX_FLAGS_INIT": "/W3 /wd4101 /Od"
+        "CMAKE_CXX_FLAGS_INIT": "/W3 /wd4101 /Od",
+        "CMAKE_PREFIX_PATH": "$env{QT_ROOT_DIR}"
       }
     },
     {
@@ -83,6 +84,7 @@
       },
       "cacheVariables": {
         "CMAKE_CXX_FLAGS_INIT": "/W3 /wd4101 /WX /O2",
+        "CMAKE_PREFIX_PATH": "$env{QT_ROOT_DIR}",
         "CMAKE_INTERPROCEDURAL_OPTIMIZATION": "TRUE"
       }
     }
