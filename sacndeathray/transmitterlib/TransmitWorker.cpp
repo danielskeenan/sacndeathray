@@ -11,16 +11,34 @@
 #include "sacndeathray/config.h"
 #include <fmt/ranges.h>
 #include <spdlog/spdlog.h>
-#include <unordered_set>
 #include <QTimer>
 
 namespace sacndeathray {
 
+void FpsCounter::run()
+{
+    lastSampleTime_ = std::chrono::steady_clock::now();
+    nextSampleTime_ = lastSampleTime_ + samplePeriod_;
+    while (!isInterruptionRequested()) {
+        const auto now = std::chrono::steady_clock::now();
+        if (now < nextSampleTime_) {
+            continue;
+        }
+        const std::chrono::duration<double> sampleDuration(now - lastSampleTime_);
+        const double fps = ticks_ / sampleDuration.count();
+        Q_EMIT(fpsReady(fps));
+        lastSampleTime_ = now;
+        nextSampleTime_ = now + samplePeriod_;
+    }
+}
+
 TransmitWorker::TransmitWorker(const Config &config, QObject *parent) :
-    QObject(parent), config_(config), timer_(new QTimer(this))
+    QObject(parent), config_(config), timer_(new QTimer(this)), fpsCounter_(new FpsCounter(this))
 {
     timer_->setTimerType(Qt::PreciseTimer);
     connect(timer_, &QTimer::timeout, this, &TransmitWorker::tick);
+    connect(
+        fpsCounter_, &FpsCounter::fpsReady, this, &TransmitWorker::fpsUpdated, Qt::QueuedConnection);
 }
 
 void TransmitWorker::start()
@@ -47,11 +65,13 @@ void TransmitWorker::start()
 
     levelBuffer_.fill(0);
     timer_->start(static_cast<int>(std::lround((1 / config_.rate) * 1000)));
+    fpsCounter_->run();
 }
 
 void TransmitWorker::stop()
 {
     timer_->stop();
+    fpsCounter_->requestInterruption();
     source_.reset();
 }
 
@@ -66,8 +86,14 @@ void TransmitWorker::tick()
         source_->UpdateLevels(univ, levelBuffer_.data(), levelBuffer_.size());
     }
     source_->ProcessManual(sacn::Source::TickMode::kProcessLevelsOnly);
+    fpsCounter_->tick();
     // Overflow wraps value back to 0.
     levelBuffer_[0] += increment_.load();
+}
+
+void TransmitWorker::fpsUpdated(double fps) const
+{
+    SPDLOG_INFO("Current transmit rate: {} Hz", fps);
 }
 
 } // namespace sacndeathray
