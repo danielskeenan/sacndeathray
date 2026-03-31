@@ -43,7 +43,7 @@ TransmitWorker::TransmitWorker(const Config &config, QObject *parent) :
 
 void TransmitWorker::start()
 {
-    SPDLOG_INFO("Staring transmitter {} on universes {}", config_.cid.ToString(), config_.universes);
+    SPDLOG_INFO("Starting transmitter {} on universes {}", config_.cid.ToString(), config_.universes);
     sacn::Source::Settings sourceSettings(config_.cid, config::kProjectDisplayName);
     // Processed in TransmitWorker::tick; this allows us to control transmit timing.
     sourceSettings.manually_process_source = true;
