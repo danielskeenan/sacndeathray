@@ -23,8 +23,7 @@ void ResultsPrinter::printResults(
         std::cout << qPrintable(tr("No errors detected!")) << std::endl;
     } else {
         std::cout << qPrintable(
-            tr("%n error(s) detected:", "", static_cast<int>(dataMismatches.size()))
-                .arg(dataMismatches.size()))
+            tr("%n error(s) detected:", "", static_cast<int>(dataMismatches.size())))
                   << std::endl;
         for (const auto &mismatch : dataMismatches) {
             std::cout << qPrintable(tr("U%1: ").arg(mismatch.universe))

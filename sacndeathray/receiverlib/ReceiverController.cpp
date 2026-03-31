@@ -42,7 +42,7 @@ void ReceiverHandler::HandleUniverseData(
     }
 
     currentValue_ = checkSlot;
-    ++nextValue_;
+    nextValue_ = checkSlot + 1;
 }
 
 void ReceiverHandler::HandleSourcesLost(
