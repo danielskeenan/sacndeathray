@@ -56,19 +56,19 @@ void TransmitController::setIncrement(const uint8_t increment)
 
 void TransmitController::start()
 {
-    auto *worker = new TransmitWorker(config_);
-    worker->moveToThread(&workerThread_);
-    connect(&workerThread_, &QThread::finished, worker, &QObject::deleteLater);
+    worker_ = new TransmitWorker(config_);
+    worker_->moveToThread(&workerThread_);
+    connect(&workerThread_, &QThread::finished, worker_, &QObject::deleteLater);
     connect(
         this,
         &TransmitController::beginTransmission,
-        worker,
+        worker_,
         &TransmitWorker::start,
         Qt::QueuedConnection);
     connect(
         this,
         &TransmitController::requestSetIncrement,
-        worker,
+        worker_,
         &TransmitWorker::setIncrement,
         Qt::QueuedConnection);
     workerThread_.start();
@@ -77,7 +77,7 @@ void TransmitController::start()
 
 void TransmitController::stop()
 {
-    workerThread_.quit();
+    workerThread_.requestInterruption();
     workerThread_.wait();
 }
 

@@ -9,10 +9,10 @@
 #ifndef SACNDEATHRAY_TRANSMITTERLIB_TRANSMITCONTROLLER_H
 #define SACNDEATHRAY_TRANSMITTERLIB_TRANSMITCONTROLLER_H
 
-#include <QObject>
-#include <QThread>
-
 #include "TransmitWorker.h"
+#include <QObject>
+#include <QPointer>
+#include <QThread>
 
 namespace sacndeathray {
 
@@ -42,6 +42,7 @@ public Q_SLOTS:
     void stop();
 
 private:
+    QPointer<TransmitWorker> worker_;
     QThread workerThread_;
     TransmitWorker::Config config_;
 };

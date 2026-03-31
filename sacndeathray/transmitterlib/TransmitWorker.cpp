@@ -25,7 +25,7 @@ void FpsCounter::run()
             continue;
         }
         const std::chrono::duration<double> sampleDuration(now - lastSampleTime_);
-        const double fps = ticks_ / sampleDuration.count();
+        const double fps = ticks_.exchange(0) / sampleDuration.count();
         Q_EMIT(fpsReady(fps));
         lastSampleTime_ = now;
         nextSampleTime_ = now + samplePeriod_;
@@ -65,13 +65,14 @@ void TransmitWorker::start()
 
     levelBuffer_.fill(0);
     timer_->start(static_cast<int>(std::lround((1 / config_.rate) * 1000)));
-    fpsCounter_->run();
+    fpsCounter_->start();
 }
 
 void TransmitWorker::stop()
 {
     timer_->stop();
     fpsCounter_->requestInterruption();
+    fpsCounter_->wait();
     source_.reset();
 }
 
@@ -82,6 +83,11 @@ void TransmitWorker::setIncrement(const uint8_t increment)
 
 void TransmitWorker::tick()
 {
+    if (QThread::currentThread()->isInterruptionRequested()) {
+        stop();
+        QThread::currentThread()->quit();
+        return;
+    }
     for (const auto univ : config_.universes) {
         source_->UpdateLevels(univ, levelBuffer_.data(), levelBuffer_.size());
     }
