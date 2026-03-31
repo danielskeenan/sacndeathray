@@ -55,6 +55,7 @@ if (BUILD_APP)
         option(BUILD_PACKAGE "Build packages/installers usable on this platform." OFF)
         if (BUILD_PACKAGE)
             add_subdirectory(install)
+            install(FILES README.md LICENSE.md TYPE DOC)
         endif ()
 
     include(CTest)
