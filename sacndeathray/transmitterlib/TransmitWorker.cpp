@@ -19,6 +19,7 @@ namespace sacndeathray {
 TransmitWorker::TransmitWorker(const Config &config, QObject *parent) :
     QObject(parent), config_(config), timer_(new QTimer(this))
 {
+    timer_->setTimerType(Qt::PreciseTimer);
     connect(timer_, &QTimer::timeout, this, &TransmitWorker::tick);
 }
 
