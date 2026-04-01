@@ -10,7 +10,7 @@ There are two separate programs: a transmitter and a receiver.
 1. Start the receiver program, noting the machine's IP Address on the desired network interface.
 2. Start the transmitter program, passing the desired network interface, universes, and receiver's IP Address.
 3. Wait for the test complete.
-4. Observe the results.
+4. Observe the results on the transmitter machine.
 
 ### Transmitter
 
