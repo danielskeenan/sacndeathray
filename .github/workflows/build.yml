@@ -8,6 +8,9 @@ on:
     branches: [ "main" ]
   workflow_dispatch: ~
 
+permissions:
+  contents: write
+
 env:
   BUILD_DIR: "${{github.workspace}}/build-release"
   QT_VERSION: 6.8
