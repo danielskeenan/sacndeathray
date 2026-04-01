@@ -59,6 +59,11 @@ jobs:
           sudo apt-get update
           sudo apt-get -y install qt6-base-dev libqt6svg6-dev qt6-tools-dev libglx-dev libgl1-mesa-dev ninja-build
 
+      - name: Install System Packages (Windows)
+        if: ${{runner.os == 'Windows'}}
+        run: |
+          choco install nsis -y
+
       - name: Setup MSVC (Windows)
         if: ${{runner.os == 'Windows'}}
         uses: TheMrMilchmann/setup-msvc-dev@v3
