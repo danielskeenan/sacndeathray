@@ -1,0 +1,112 @@
+name: Build
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch: ~
+
+env:
+  BUILD_DIR: "${{github.workspace}}/build-release"
+  QT_VERSION: 6.8
+  VCPKG_DEFAULT_BINARY_CACHE: ${{github.workspace}}/.vcpkg-binary-cache
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        system:
+          - os: ubuntu-latest
+            cmake_preset: linux-release
+          - os: windows-latest
+            cmake_preset: windows-release
+            qt_arch: win64_msvc2022_64
+    runs-on: ${{matrix.system.os}}
+
+    steps:
+      #######################
+      # SETUP
+      #######################
+      - uses: actions/checkout@v4
+
+      - name: Setup vcpkg
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git .vcpkg
+          cd .vcpkg && ./bootstrap-vcpkg.sh
+          echo "VCPKG_ROOT=${{github.workspace}}/.vcpkg" >> "$GITHUB_ENV"
+
+      - name: Create vcpkg binary cache
+        run: mkdir -p "${VCPKG_DEFAULT_BINARY_CACHE}"
+
+      - name: Restore vcpkg binary cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
+          key: ${{ runner.os }}-vcpkg-binary-cache-${{ hashFiles('vcpkg*.json') }}
+          restore-keys: |
+            ${{ runner.os }}-vcpkg-binary-cache-
+
+      - name: Install System Packages (Linux)
+        if: ${{runner.os == 'Linux'}}
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install qt6-base-dev libqt6svg6-dev qt6-tools-dev libglx-dev libgl1-mesa-dev ninja-build
+
+      - name: Setup MSVC (Windows)
+        if: ${{runner.os == 'Windows'}}
+        uses: TheMrMilchmann/setup-msvc-dev@v3
+        with:
+          arch: x64
+
+      - name: Install Qt
+        # Don't need this on Linux, as Qt will come from the system package manager above
+        if: ${{runner.os != 'Linux'}}
+        uses: jurplel/install-qt-action@v4
+        with:
+          dir: ${{github.workspace}}/.qt
+          version: ${{env.QT_VERSION}}
+          arch: ${{matrix.system.qt_arch}}
+          cache: true
+
+      #######################
+      # BUILD
+      #######################
+      - name: Configure CMake
+        run: >
+          cmake
+          -S "${{github.workspace}}"
+          -B "${BUILD_DIR}"
+          --preset=${{matrix.system.cmake_preset}}
+          -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install_root"
+          -DBUILD_TESTING=On
+          -DBUILD_PACKAGE=On
+
+      - name: Build
+        run: cmake --build "${BUILD_DIR}"
+
+      #######################
+      # PACKAGE
+      #######################
+      - name: Package
+        working-directory: ${{env.BUILD_DIR}}
+        run: cpack -B "${BUILD_DIR}/packages"
+
+      - name: Upload failed package artifacts
+        uses: actions/upload-artifact@v4
+        if: ${{ failure() }}
+        with:
+          name: failed_package_${{runner.os}}
+          path: ${{env.BUILD_DIR}}/packages
+
+      - name: Upload packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages_${{runner.os}}_${{runner.arch}}
+          path: ${{env.BUILD_DIR}}/packages/*.*
+          if-no-files-found: error
