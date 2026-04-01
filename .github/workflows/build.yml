@@ -22,8 +22,9 @@ jobs:
       fail-fast: false
       matrix:
         system:
-          - os: ubuntu-latest
-            cmake_preset: linux-release
+# TODO: Test with Qt 6.4 as provided in Ubuntu, or depend on backports.
+#          - os: ubuntu-latest
+#            cmake_preset: linux-release
           - os: windows-latest
             cmake_preset: windows-release
             qt_arch: win64_msvc2022_64
@@ -72,6 +73,7 @@ jobs:
           dir: ${{github.workspace}}/.qt
           version: ${{env.QT_VERSION}}
           arch: ${{matrix.system.qt_arch}}
+          modules: qtwebsockets
           cache: true
 
       #######################
