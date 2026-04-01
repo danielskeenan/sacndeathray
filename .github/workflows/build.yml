@@ -117,3 +117,38 @@ jobs:
           name: packages_${{runner.os}}_${{runner.arch}}
           path: ${{env.BUILD_DIR}}/packages/*.*
           if-no-files-found: error
+
+  #######################
+  # RELEASE
+  #######################
+  release:
+    needs:
+      - build
+    runs-on: ubuntu-latest
+    if: ${{ github.ref_type == 'tag' }}
+    steps:
+      - name: Get built packages
+        uses: actions/download-artifact@v4
+        id: download
+        with:
+          pattern: packages_*
+          path: packages
+          merge-multiple: true
+
+      - name: Determine channel
+        id: channel
+        uses: dkershner6/switch-case-action@v1
+        with:
+          default: "dev"
+          conditionals-with-values: |
+            ${{ startsWith(github.ref_name, 'v') }} => main
+
+      - name: Release (dev build)
+        uses: softprops/action-gh-release@v1
+        with:
+          prerelease: ${{ steps.channel.outputs.value != 'main' }}
+          draft: true
+          tag_name: ${{ github.ref_name }}
+          fail_on_unmatched_files: true
+          generate_release_notes: true
+          files: ${{steps.download.outputs.download-path}}/*
